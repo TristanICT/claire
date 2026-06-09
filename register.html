@@ -1,0 +1,192 @@
+<?php
+error_reporting(E_ALL);
+ini_set('display_errors', 1);
+
+$message = "";
+
+// database connectie
+$conn = new mysqli("localhost", "root", "", "brightlands");
+
+if ($conn->connect_error) {
+    die("Database fout: " . $conn->connect_error);
+}
+
+// formulier verwerken
+if ($_SERVER["REQUEST_METHOD"] == "POST") {
+
+    $voornaam = $_POST['voornaam'];
+    $achternaam = $_POST['achternaam'];
+    $bedrijfsnaam = $_POST['bedrijfsnaam'];
+    $email = $_POST['email'];
+    $password = password_hash($_POST['password'], PASSWORD_DEFAULT);
+
+    $sql = "INSERT INTO users (voornaam, achternaam, bedrijfsnaam, email, password)
+            VALUES (?, ?, ?, ?, ?)";
+
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("sssss", $voornaam, $achternaam, $bedrijfsnaam, $email, $password);
+
+    if ($stmt->execute()) {
+        $message = "Registratie gelukt!";
+    } else {
+        $message = "Fout: " . $stmt->error;
+    }
+
+    $stmt->close();
+}
+
+$conn->close();
+?>
+
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brightlands Portal - Registreren</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #e6f4ea, #c7f0d8);
+        }
+
+        .register-container {
+            background: white;
+            padding: 40px;
+            width: 100%;
+            max-width: 420px;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .logo {
+            text-align: center;
+            margin-bottom: 10px;
+        }
+
+        .logo h1 {
+            color: #15803d;
+            font-weight: 600;
+        }
+
+        .subtitle {
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .message {
+            text-align: center;
+            margin-bottom: 15px;
+            font-size: 14px;
+            color: green;
+        }
+
+        .error {
+            color: red;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            background-color: #16a34a;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #15803d;
+        }
+    </style>
+</head>
+<body>
+
+<div class="register-container">
+
+    <div class="logo">
+        <h1>Brightlands Portal</h1>
+    </div>
+
+    <div class="subtitle">
+        Registreer om toegang te krijgen tot je account
+    </div>
+
+    <!-- 🔔 feedback -->
+    <?php if ($message): ?>
+        <div class="message <?php echo strpos($message, 'Fout') !== false ? 'error' : ''; ?>">
+            <?php echo $message; ?>
+        </div>
+    <?php endif; ?>
+
+    <form method="POST">
+
+        <div class="form-group">
+            <label>Voornaam</label>
+            <input type="text" name="voornaam" required>
+        </div>
+
+        <div class="form-group">
+            <label>Achternaam</label>
+            <input type="text" name="achternaam" required>
+        </div>
+
+        <div class="form-group">
+            <label>Bedrijfsnaam</label>
+            <input type="text" name="bedrijfsnaam" required>
+        </div>
+
+        <div class="form-group">
+            <label>E-mailadres</label>
+            <input type="email" name="email" required>
+        </div>
+
+        <div class="form-group">
+            <label>Wachtwoord</label>
+            <input type="password" name="password" minlength="6" required>
+        </div>
+
+        <button type="submit">Registreren</button>
+
+    </form>
+
+</div>
+
+</body>
+</html>
